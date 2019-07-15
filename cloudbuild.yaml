@@ -1,11 +1,16 @@
+images:
+  - gcr.io/$PROJECT_ID/$REPO_NAME:commit-$SHORT_SHA
+
 steps:
-  # Building and testing have been combined to allow module cache to be reüsed between steps
-  - name: 'golang:1.12-stretch'
-    env:
-      - GO111MODULE=on
+  - id: Build
+    name: gcr.io/cloud-builders/docker
     args:
-      - bash
-      - -c
-      - |
-        go test ./...
-        go build ./cmd/spectacles
+      - build
+      - --tag
+      - gcr.io/$PROJECT_ID/$REPO_NAME:commit-$SHORT_SHA
+      - .
+  - id: Push
+    name: gcr.io/cloud-builders/docker
+    args: 
+      - push
+      - gcr.io/$PROJECT_ID/$REPO_NAME:commit-$SHORT_SHA
