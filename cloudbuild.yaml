@@ -2,6 +2,28 @@ images:
   - gcr.io/$PROJECT_ID/$REPO_NAME:commit-$SHORT_SHA
 
 steps:
+  - id: Mirror Credential Fetch
+    name: gcr.io/cloud-builders/gsutil
+    args:
+      - cp
+      - gs://${PROJECT_ID}-a320daed/secrets/docker-hub.json.enc
+      - docker-hub.json.enc
+  - id: Mirror Credential Decrypt
+    name: gcr.io/cloud-builders/gcloud
+    args:
+      - kms
+      - decrypt
+      - --location=global
+      - --keyring=brave-flow-hotel
+      - --key=cloud-build-github
+      - --ciphertext-file=docker-hub.json.enc
+      - --plaintext-file=docker-hub.json
+  - id: Mirror Login
+    name: gcr.io/cloud-builders/docker
+    args:
+      - login
+      - --username=$(cat docker-hub.json | jq -r .username)
+      - --password=$(cat docker-hub.json | jq -r .password)
   - id: Build
     name: gcr.io/cloud-builders/docker
     args:
@@ -14,3 +36,14 @@ steps:
     args: 
       - push
       - gcr.io/$PROJECT_ID/$REPO_NAME:commit-$SHORT_SHA
+  - id: Mirror Tag
+    name: gcr.io/cloud-builders/docker
+    args:
+      - tag
+      - gcr.io/$PROJECT_ID/$REPO_NAME:commit-$SHORT_SHA
+      - ripta/$REPO_NAME:commit-$SHORT_SHA
+  - id: Mirror Push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ripta/$REPO_NAME:commit-$SHORT_SHA
