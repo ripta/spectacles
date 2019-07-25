@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/ripta/spectacles/pkg/app"
-	"k8s.io/klog"
 )
 
 func main() {
@@ -19,8 +18,8 @@ func main() {
 }
 
 func run() error {
-	cmd := app.NewCommand()
-	klog.InitFlags(nil)
-	defer klog.Flush()
+	opts := app.NewOptions()
+	cmd, cleanup := app.NewStandalone(opts)
+	defer cleanup()
 	return cmd.Execute()
 }
