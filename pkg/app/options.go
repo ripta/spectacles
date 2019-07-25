@@ -8,6 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// Options encapsulates all application options.
 type Options struct {
 	Kubeconfig string
 	Master     string
@@ -25,12 +26,14 @@ const (
 	defaultResyncPeriod = 15 * time.Second
 )
 
+// NewOptions initializes a structure to encapsulate application options.
 func NewOptions() *Options {
 	return &Options{
 		ResyncPeriod: &metav1.Duration{},
 	}
 }
 
+// AddFlags injects application options into the flagset.
 func (o *Options) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&o.Kubeconfig, "kubeconfig", "", "Path to kubeconfig file for out-of-cluster operations.")
 	fs.StringVar(&o.Master, "master", "", "The address of the Kubernetes API server for out-of-cluster operations.")
@@ -41,10 +44,12 @@ func (o *Options) AddFlags(fs *pflag.FlagSet) {
 	fs.DurationVar(&o.ResyncPeriod.Duration, "resync-period", defaultResyncPeriod, "The interval of how often event watches are resynced, e.g., '30s', '5m'.")
 }
 
+// Complete checks command line argument combinations.
 func (o *Options) Complete() error {
 	return nil
 }
 
+// Validate checks that the correct options are specified.
 func (o *Options) Validate(args []string) error {
 	return nil
 }

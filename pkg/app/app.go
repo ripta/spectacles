@@ -23,6 +23,7 @@ import (
 	"k8s.io/kubernetes/pkg/version/verflag"
 )
 
+// NewCommand creates a new command that can be Execute()d.
 func NewCommand() *cobra.Command {
 	o := NewOptions()
 	cmd := &cobra.Command{
