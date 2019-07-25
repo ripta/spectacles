@@ -3,6 +3,7 @@ package app
 import (
 	"time"
 
+	"github.com/ripta/spectacles/pkg/sinks"
 	"github.com/spf13/pflag"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,6 +18,8 @@ type Options struct {
 	MetricsPort int32
 
 	ResyncPeriod *metav1.Duration
+
+	Sink sinks.Writer
 }
 
 const (

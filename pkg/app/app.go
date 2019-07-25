@@ -87,14 +87,17 @@ func generateRunnerE(o *Options) func(*cobra.Command, []string) error {
 
 		go startMetricsServer(o.MetricsPort)
 
-		fs := &sinks.StreamSink{
-			Stream:  os.Stdout,
-			Encoder: sinks.JSONEncoder,
-		}
 		inf := informers.NewSharedInformerFactory(cs, o.ResyncPeriod.Duration)
 
 		klog.Info("booting up exporter")
-		ex := exporter.NewClusterEventExporter(inf.Core().V1().Events(), fs)
+		sw := o.Sink
+		if sw == nil {
+			sw = &sinks.StreamSink{
+				Stream:  os.Stdout,
+				Encoder: sinks.JSONEncoder,
+			}
+		}
+		ex := exporter.NewClusterEventExporter(inf.Core().V1().Events(), sw)
 
 		klog.Info("booting up informers")
 		inf.Start(stopCh)
