@@ -23,9 +23,18 @@ import (
 	"k8s.io/kubernetes/pkg/version/verflag"
 )
 
-// NewCommand creates a new command that can be Execute()d.
+// CleanupFunc is an operation to cleanup resources that may be left behind.
+type CleanupFunc func()
+
+// NewCommand creates a new instance of spectacles, which can be executed as
+// part of an existing application.
 func NewCommand() *cobra.Command {
-	o := NewOptions()
+	return NewCommandWithOptions(NewOptions())
+}
+
+// NewCommandWithOptions creates a new instance of spectacles with a set of
+// options. The resulting command can be executed as part of a larger app.
+func NewCommandWithOptions(o *Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "spectacles",
 		Long: `Export Kubernetes Events`,
@@ -35,6 +44,24 @@ func NewCommand() *cobra.Command {
 	o.AddFlags(cmd.Flags())
 	cmd.MarkFlagFilename("config", "yaml", "json")
 	return cmd
+}
+
+// NewStandalone creates a new instance of spectacles, but also initializes
+// the Kubernetes logger mechanism for when the command is being run as a
+// standalone. The second return is a cleanup function that must be called
+// after the function is executed, e.g.:
+//
+//   o := app.NewOptions()
+//   cmd, cleanup := app.NewStandalone(o)
+//   defer cleanup()
+//   err := cmd.Execute()
+func NewStandalone(o *Options) (*cobra.Command, CleanupFunc) {
+	cmd := NewCommandWithOptions(o)
+	klog.InitFlags(nil)
+	cleanup := func() {
+		klog.Flush()
+	}
+	return cmd, cleanup
 }
 
 func generateRunnerE(o *Options) func(*cobra.Command, []string) error {
