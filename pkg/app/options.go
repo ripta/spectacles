@@ -19,7 +19,8 @@ type Options struct {
 
 	ResyncPeriod *metav1.Duration
 
-	Sink sinks.Writer
+	Sink  sinks.Writer
+	Sinks map[string]sinks.Writer
 }
 
 const (
@@ -33,6 +34,7 @@ const (
 func NewOptions() *Options {
 	return &Options{
 		ResyncPeriod: &metav1.Duration{},
+		Sinks:        make(map[string]sinks.Writer),
 	}
 }
 

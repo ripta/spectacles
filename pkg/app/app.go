@@ -90,14 +90,21 @@ func generateRunnerE(o *Options) func(*cobra.Command, []string) error {
 		inf := informers.NewSharedInformerFactory(cs, o.ResyncPeriod.Duration)
 
 		klog.Info("booting up exporter")
-		sw := o.Sink
-		if sw == nil {
-			sw = &sinks.StreamSink{
+		ex := exporter.NewUnsunkClusterEventExporter(inf.Core().V1().Events())
+		if len(o.Sinks) > 0 || o.Sink != nil {
+			if o.Sink != nil {
+				ex.AddSink("custom", o.Sink)
+			}
+			for n, s := range o.Sinks {
+				ex.AddSink(n, s)
+			}
+		} else {
+			klog.Info("using default sink to STDOUT and using the default JSON encoder")
+			ex.AddSink("default", &sinks.StreamSink{
 				Stream:  os.Stdout,
 				Encoder: sinks.JSONEncoder,
-			}
+			})
 		}
-		ex := exporter.NewClusterEventExporter(inf.Core().V1().Events(), sw)
 
 		klog.Info("booting up informers")
 		inf.Start(stopCh)

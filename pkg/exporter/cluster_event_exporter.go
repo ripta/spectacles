@@ -10,28 +10,42 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog"
 
+	"github.com/pkg/errors"
 	"github.com/ripta/spectacles/pkg/sinks"
 )
 
 type clusterEventExporter struct {
 	eventsLister     listerv1.EventLister
 	eventsHaveSynced cache.InformerSynced
-	sink             sinks.Writer
+	sinkses          map[string]sinks.Writer
 }
 
 func NewClusterEventExporter(eventInformer informerv1.EventInformer, w sinks.Writer) *clusterEventExporter {
-	c := &clusterEventExporter{
-		eventsLister:     eventInformer.Lister(),
-		eventsHaveSynced: eventInformer.Informer().HasSynced,
-		sink:             w,
-	}
-
-	c.patchInformer(eventInformer.Informer())
+	c := NewUnsunkClusterEventExporter(eventInformer)
+	c.AddSink("default", w)
 	return c
 }
 
-func (c *clusterEventExporter) EmitToSink(evt *apiv1.Event) error {
-	return c.sink.Write(evt)
+func NewUnsunkClusterEventExporter(eventInformer informerv1.EventInformer) *clusterEventExporter {
+	c := &clusterEventExporter{
+		eventsLister:     eventInformer.Lister(),
+		eventsHaveSynced: eventInformer.Informer().HasSynced,
+		sinkses:          make(map[string]sinks.Writer),
+	}
+
+	klog.V(4).Info("installing event handlers")
+	eventInformer.Informer().AddEventHandler(c.resourceEventHandlers())
+	return c
+}
+
+func (c *clusterEventExporter) AddSink(name string, w sinks.Writer) {
+	klog.V(4).Infof("adding sink %s", name)
+	c.sinkses[name] = w
+}
+
+func (c *clusterEventExporter) DeleteSink(name string) {
+	klog.V(4).Infof("deleting sink %s", name)
+	delete(c.sinkses, name)
 }
 
 func (c *clusterEventExporter) Run(stopCh <-chan struct{}) error {
@@ -49,8 +63,8 @@ func (c *clusterEventExporter) Run(stopCh <-chan struct{}) error {
 	return nil
 }
 
-func (c *clusterEventExporter) patchInformer(inf cache.SharedIndexInformer) {
-	handlers := cache.ResourceEventHandlerFuncs{
+func (c *clusterEventExporter) resourceEventHandlers() cache.ResourceEventHandlerFuncs {
+	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			evt, ok := obj.(*apiv1.Event)
 			if !ok {
@@ -58,12 +72,12 @@ func (c *clusterEventExporter) patchInformer(inf cache.SharedIndexInformer) {
 				return
 			}
 
-			if err := c.EmitToSink(evt); err != nil {
-				utilruntime.HandleError(fmt.Errorf("could not write %q to sink: %v", evt.GetName(), err))
+			for n, s := range c.sinkses {
+				if err := s.Write(evt); err != nil {
+					err = errors.Wrap(err, fmt.Sprintf("could not write event %s to sink %s", evt.GetName(), n))
+					utilruntime.HandleError(err)
+				}
 			}
 		},
 	}
-
-	klog.Info("installing event handlers")
-	inf.AddEventHandler(handlers)
 }
