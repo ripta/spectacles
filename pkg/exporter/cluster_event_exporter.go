@@ -13,13 +13,14 @@ import (
 	"github.com/ripta/spectacles/pkg/sinks"
 )
 
-type clusterEventExporter struct {
+// ClusterEventExporter is the main event exporter.
+type ClusterEventExporter struct {
 	eventsHaveSynced cache.InformerSynced
 	sinkses          map[string]sinks.Writer
 }
 
 // NewClusterEventExporter creates a new event exporter with a sink.
-func NewClusterEventExporter(eventInformer informerv1.EventInformer, w sinks.Writer) *clusterEventExporter {
+func NewClusterEventExporter(eventInformer informerv1.EventInformer, w sinks.Writer) *ClusterEventExporter {
 	c := NewUnsunkClusterEventExporter(eventInformer)
 	c.AddSink("default", w)
 	return c
@@ -27,8 +28,8 @@ func NewClusterEventExporter(eventInformer informerv1.EventInformer, w sinks.Wri
 
 // NewUnsunkClusterEventExporter creates a new event exporter. Sinks must be
 // added manually by calling AddSink.
-func NewUnsunkClusterEventExporter(eventInformer informerv1.EventInformer) *clusterEventExporter {
-	c := &clusterEventExporter{
+func NewUnsunkClusterEventExporter(eventInformer informerv1.EventInformer) *ClusterEventExporter {
+	c := &ClusterEventExporter{
 		eventsHaveSynced: eventInformer.Informer().HasSynced,
 		sinkses:          make(map[string]sinks.Writer),
 	}
@@ -39,20 +40,20 @@ func NewUnsunkClusterEventExporter(eventInformer informerv1.EventInformer) *clus
 }
 
 // AddSink adds an event sink to the exporter.
-func (c *clusterEventExporter) AddSink(name string, w sinks.Writer) {
+func (c *ClusterEventExporter) AddSink(name string, w sinks.Writer) {
 	klog.V(4).Infof("adding sink %s", name)
 	c.sinkses[name] = w
 }
 
 // DeleteSink removes an event sink by name from the exporter.
-func (c *clusterEventExporter) DeleteSink(name string) {
+func (c *ClusterEventExporter) DeleteSink(name string) {
 	klog.V(4).Infof("deleting sink %s", name)
 	delete(c.sinkses, name)
 }
 
 // Run waits for the initial cache sync to complete and blocks until the main
 // exporter loop returns, i.e., when the stopCh closes.
-func (c *clusterEventExporter) Run(stopCh <-chan struct{}) error {
+func (c *ClusterEventExporter) Run(stopCh <-chan struct{}) error {
 	defer utilruntime.HandleCrash()
 
 	klog.Info("waiting for caches to populate")
@@ -67,7 +68,7 @@ func (c *clusterEventExporter) Run(stopCh <-chan struct{}) error {
 	return nil
 }
 
-func (c *clusterEventExporter) resourceEventHandlers() cache.ResourceEventHandlerFuncs {
+func (c *ClusterEventExporter) resourceEventHandlers() cache.ResourceEventHandlerFuncs {
 	return cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			evt, ok := obj.(*apiv1.Event)
