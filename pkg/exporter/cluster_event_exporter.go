@@ -6,7 +6,6 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	informerv1 "k8s.io/client-go/informers/core/v1"
-	listerv1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog"
 
@@ -15,7 +14,6 @@ import (
 )
 
 type clusterEventExporter struct {
-	eventsLister     listerv1.EventLister
 	eventsHaveSynced cache.InformerSynced
 	sinkses          map[string]sinks.Writer
 }
@@ -28,7 +26,6 @@ func NewClusterEventExporter(eventInformer informerv1.EventInformer, w sinks.Wri
 
 func NewUnsunkClusterEventExporter(eventInformer informerv1.EventInformer) *clusterEventExporter {
 	c := &clusterEventExporter{
-		eventsLister:     eventInformer.Lister(),
 		eventsHaveSynced: eventInformer.Informer().HasSynced,
 		sinkses:          make(map[string]sinks.Writer),
 	}
