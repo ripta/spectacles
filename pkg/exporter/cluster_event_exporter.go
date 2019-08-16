@@ -18,12 +18,15 @@ type clusterEventExporter struct {
 	sinkses          map[string]sinks.Writer
 }
 
+// NewClusterEventExporter creates a new event exporter with a sink.
 func NewClusterEventExporter(eventInformer informerv1.EventInformer, w sinks.Writer) *clusterEventExporter {
 	c := NewUnsunkClusterEventExporter(eventInformer)
 	c.AddSink("default", w)
 	return c
 }
 
+// NewUnsunkClusterEventExporter creates a new event exporter. Sinks must be
+// added manually by calling AddSink.
 func NewUnsunkClusterEventExporter(eventInformer informerv1.EventInformer) *clusterEventExporter {
 	c := &clusterEventExporter{
 		eventsHaveSynced: eventInformer.Informer().HasSynced,
@@ -35,16 +38,20 @@ func NewUnsunkClusterEventExporter(eventInformer informerv1.EventInformer) *clus
 	return c
 }
 
+// AddSink adds an event sink to the exporter.
 func (c *clusterEventExporter) AddSink(name string, w sinks.Writer) {
 	klog.V(4).Infof("adding sink %s", name)
 	c.sinkses[name] = w
 }
 
+// DeleteSink removes an event sink by name from the exporter.
 func (c *clusterEventExporter) DeleteSink(name string) {
 	klog.V(4).Infof("deleting sink %s", name)
 	delete(c.sinkses, name)
 }
 
+// Run waits for the initial cache sync to complete and blocks until the main
+// exporter loop returns, i.e., when the stopCh closes.
 func (c *clusterEventExporter) Run(stopCh <-chan struct{}) error {
 	defer utilruntime.HandleCrash()
 
