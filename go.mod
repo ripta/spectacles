@@ -12,11 +12,11 @@ require (
 	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8 // indirect
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
-	k8s.io/api v0.0.0-20190712022805-31fe033ae6f9
-	k8s.io/apimachinery v0.0.0-20190712095106-75ce4d1e60f1
-	k8s.io/client-go v0.0.0-20190612210332-e4cdb82809fc
+	k8s.io/api v0.0.0
+	k8s.io/apimachinery v0.0.0
+	k8s.io/client-go v0.0.0
 	k8s.io/klog v0.3.3
-  k8s.io/kubernetes v1.15.0
+	k8s.io/kubernetes v1.15.0
 	k8s.io/utils v0.0.0-20190607212802-c55fbcfc754a // indirect
 )
 
