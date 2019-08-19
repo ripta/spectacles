@@ -14,13 +14,12 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ripta/spectacles/pkg/exporter"
+	"github.com/ripta/spectacles/pkg/uflag"
 
 	"k8s.io/client-go/informers"
 	kc "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
-	utilflag "k8s.io/kubernetes/pkg/util/flag"
-	"k8s.io/kubernetes/pkg/version/verflag"
 )
 
 // CleanupFunc is an operation to cleanup resources that may be left behind.
@@ -66,8 +65,7 @@ func NewStandalone(o *Options) (*cobra.Command, CleanupFunc) {
 
 func generateRunnerE(o *Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		verflag.PrintAndExitIfRequested()
-		utilflag.PrintFlags(cmd.Flags())
+		uflag.PrintFlags(klog.V(1), cmd.Flags())
 
 		if err := o.Complete(); err != nil {
 			return errors.Wrap(err, "options were incomplete")
