@@ -151,6 +151,11 @@ func setupSignalHandler() <-chan struct{} {
 }
 
 func startMetricsServer(port int32) {
+	if port == 0 {
+		klog.Info("metrics port is set to 0; skipping metrics handler")
+		return
+	}
+
 	http.Handle("/metrics", promhttp.Handler())
 
 	portString := fmt.Sprintf(":%d", port)
