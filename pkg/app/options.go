@@ -33,8 +33,13 @@ const (
 // NewOptions initializes a structure to encapsulate application options.
 func NewOptions() *Options {
 	return &Options{
-		ResyncPeriod: &metav1.Duration{},
-		Sinks:        make(map[string]sinks.Writer),
+		HealthzPort: defaultHealthzPort,
+		MetricsPort: defaultMetricsPort,
+
+		ResyncPeriod: &metav1.Duration{
+			Duration: defaultResyncPeriod,
+		},
+		Sinks: map[string]sinks.Writer{},
 	}
 }
 
@@ -43,10 +48,10 @@ func (o *Options) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&o.Kubeconfig, "kubeconfig", "", "Path to kubeconfig file for out-of-cluster operations.")
 	fs.StringVar(&o.Master, "master", "", "The address of the Kubernetes API server for out-of-cluster operations.")
 
-	fs.Int32Var(&o.HealthzPort, "healthz-port", defaultHealthzPort, "The port to bind health check server. Use 0 to disable.")
-	fs.Int32Var(&o.MetricsPort, "metrics-port", defaultMetricsPort, "The port to bind metrics server. Use 0 to disable.")
+	fs.Int32Var(&o.HealthzPort, "healthz-port", o.HealthzPort, "The port to bind health check server. Use 0 to disable.")
+	fs.Int32Var(&o.MetricsPort, "metrics-port", o.MetricsPort, "The port to bind metrics server. Use 0 to disable.")
 
-	fs.DurationVar(&o.ResyncPeriod.Duration, "resync-period", defaultResyncPeriod, "The interval of how often event watches are resynced, e.g., '30s', '5m'.")
+	fs.DurationVar(&o.ResyncPeriod.Duration, "resync-period", o.ResyncPeriod.Duration, "The interval of how often event watches are resynced, e.g., '30s', '5m'.")
 }
 
 // Complete checks command line argument combinations.
