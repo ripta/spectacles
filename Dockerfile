@@ -1,4 +1,4 @@
-FROM golang:1.17-stretch AS build
+FROM golang:1.19-bullseye AS build
 ENV GO111MODULE=on
 
 RUN mkdir /app
