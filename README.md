@@ -25,6 +25,23 @@ make run
 # Deploying
 
 spectacles can run in-cluster, but you're on your own in build a docker image
-for it. Its service account needs to be able to get events in the cluster.
+for it. Its service account needs to be able to get events in the cluster, e.g.:
 
-There is no leader election, so you'll need to run only one copy.
+```
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: spectacles
+rules:
+  - apiGroups:
+      - "" # core
+      - events.k8s.io
+    resources:
+      - events
+    verbs:
+      - get
+      - list
+      - watch
+```
+
+There is no leader election (yet?), so you'll need to run only one copy.
