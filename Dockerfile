@@ -1,5 +1,4 @@
-FROM golang:1.21-bullseye AS build
-ENV GO111MODULE=on
+FROM golang:1.21-bookworm AS build
 
 RUN mkdir /app
 WORKDIR /app
@@ -10,7 +9,7 @@ RUN go build ./cmd/spectacles
 
 ###
 
-FROM debian:stretch-slim
+FROM debian:bookworm-slim
 COPY --from=build /app/spectacles /app/spectacles
 ENTRYPOINT ["/app/spectacles"]
 
