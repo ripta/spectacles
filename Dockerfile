@@ -1,4 +1,4 @@
-FROM golang:1.19-bullseye AS build
+FROM golang:1.21-bullseye AS build
 ENV GO111MODULE=on
 
 RUN mkdir /app
