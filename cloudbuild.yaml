@@ -9,8 +9,3 @@ steps:
       - --tag
       - gcr.io/$PROJECT_ID/$REPO_NAME:commit-$SHORT_SHA
       - .
-  - id: Push
-    name: gcr.io/cloud-builders/docker
-    args: 
-      - push
-      - gcr.io/$PROJECT_ID/$REPO_NAME:commit-$SHORT_SHA
